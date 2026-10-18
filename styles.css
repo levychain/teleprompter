@@ -132,7 +132,8 @@ button, input, textarea { font: inherit; color: inherit; }
   overflow-wrap: break-word;
 }
 .scroller p { margin: 0 0 .7em; }
-.scroller .cue { color: var(--p-cue); font-weight: 500; font-size: .62em; letter-spacing: .02em; text-transform: uppercase; vertical-align: .12em; }
+.scroller .cue { display: block; color: var(--p-cue); font-weight: 500; font-size: .5em; line-height: 1.25; letter-spacing: .03em; text-transform: uppercase; margin: .35em 0 .3em; }
+.scroller p > .cue:first-child { margin-top: 0; }
 .scroller strong { font-weight: 800; color: var(--p-em); }
 .scroller .w.said { color: var(--p-said); transition: color .25s; }
 .scroller .end { text-align: center; opacity: .4; font-size: .5em; font-weight: 500; padding-top: .5em; }

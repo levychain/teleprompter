@@ -203,6 +203,9 @@ function layout(keepFraction = true) {
   const vh = P.stage.clientHeight;
   readY = vh * S.readLine / 100;
   P.scroller.style.paddingTop = readY + 'px';
+  // a leading cue sits above the band so the first spoken word starts on the reading line
+  const lead = words[0] ? words[0].el.offsetTop - readY : 0;
+  if (lead > 0) P.scroller.style.paddingTop = Math.max(0, readY - lead) + 'px';
   P.scroller.style.paddingBottom = Math.max(0, vh - readY) + 'px';
   maxPos = Math.max(0, P.scroller.scrollHeight - vh);
   pxPerWord = Math.max(1, maxPos / wordCount);
