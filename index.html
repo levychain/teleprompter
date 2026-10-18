@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Prompter</title>
+<meta name="description" content="A simple teleprompter for recording short form video on iPad.">
+<meta name="theme-color" content="#0b0b0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prompter">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- LIBRARY + EDITOR -->
+<main id="home" class="screen">
+  <aside class="side">
+    <div class="brand">
+      <h1>Prompter</h1>
+      <button id="newScript" class="btn ghost small" aria-label="New script">+ New</button>
+    </div>
+    <ul id="scriptList" class="script-list"></ul>
+    <p class="side-foot">Saved on this device. Works offline.</p>
+  </aside>
+
+  <section class="editor">
+    <div class="editor-top">
+      <input id="title" class="title-input" placeholder="Untitled script" autocomplete="off">
+      <div class="editor-actions">
+        <button id="pasteBtn" class="btn ghost small">Paste</button>
+        <button id="deleteBtn" class="btn ghost small danger">Delete</button>
+      </div>
+    </div>
+    <textarea id="body" class="body-input" placeholder="Paste your script here.
+
+Tips
+Blank lines become paragraph breaks.
+[Bracketed notes] show as cues you do not read, like [smile] or [cut to b roll].
+**Double asterisks** make a word bold." spellcheck="true"></textarea>
+    <div class="editor-bottom">
+      <div class="stats"><span id="wordCount">0 words</span><span class="dot">·</span><span id="readTime">0:00 at 160 wpm</span></div>
+      <button id="startBtn" class="btn primary">Start prompting</button>
+    </div>
+  </section>
+</main>
+
+<!-- PROMPTER -->
+<section id="prompter" class="screen prompter hidden" aria-label="Teleprompter">
+  <video id="cam" class="cam hidden" playsinline muted autoplay></video>
+  <div id="camShade" class="cam-shade hidden"></div>
+
+  <div id="stage" class="stage">
+    <div id="flip" class="flip">
+      <div id="scroller" class="scroller"></div>
+      <div id="band" class="band"></div>
+    </div>
+  </div>
+
+  <div id="countdown" class="countdown hidden"></div>
+  <div id="recDot" class="rec-dot hidden"><span></span><b id="recTime">0:00</b></div>
+  <div id="progress" class="progress"><i id="progressFill"></i></div>
+
+  <header id="topBar" class="bar top">
+    <button id="exitBtn" class="btn bar-btn">Done</button>
+    <div class="bar-mid"><span id="pTitle"></span><span id="pRemain" class="muted"></span></div>
+    <div class="bar-right">
+      <button id="voiceBtn" class="btn bar-btn" title="Voice follow">Voice</button>
+      <button id="camBtn" class="btn bar-btn" title="Camera">Camera</button>
+      <button id="recBtn" class="btn bar-btn rec hidden" title="Record">Record</button>
+      <button id="setBtn" class="btn bar-btn" title="Settings">Aa</button>
+    </div>
+  </header>
+
+  <footer id="bottomBar" class="bar bottom">
+    <button id="restartBtn" class="btn round" title="Back to start" aria-label="Back to start">⤒</button>
+    <button id="backBtn" class="btn round" title="Back a few lines" aria-label="Back">↺</button>
+    <button id="playBtn" class="btn round play" aria-label="Play">▶</button>
+    <div class="speed">
+      <button id="slowerBtn" class="btn round small" aria-label="Slower">−</button>
+      <div class="speed-read"><b id="wpmVal">160</b><span>wpm</span></div>
+      <button id="fasterBtn" class="btn round small" aria-label="Faster">+</button>
+    </div>
+    <div id="presets" class="presets">
+      <button data-wpm="120">Slow</button>
+      <button data-wpm="150">Calm</button>
+      <button data-wpm="170">Reels</button>
+      <button data-wpm="200">Fast</button>
+    </div>
+  </footer>
+
+  <!-- SETTINGS SHEET -->
+  <div id="sheet" class="sheet hidden" role="dialog" aria-label="Display settings">
+    <div class="sheet-head"><h2>Display</h2><button id="sheetClose" class="btn bar-btn">Close</button></div>
+    <div class="sheet-body">
+      <label class="row"><span>Text size <em id="fsVal"></em></span><input id="fontSize" type="range" min="24" max="160" step="2"></label>
+      <label class="row"><span>Line spacing <em id="lhVal"></em></span><input id="lineHeight" type="range" min="1.1" max="2.2" step="0.05"></label>
+      <label class="row"><span>Text width <em id="wVal"></em></span><input id="width" type="range" min="35" max="100" step="1"></label>
+      <label class="row"><span>Reading line <em id="rlVal"></em></span><input id="readLine" type="range" min="8" max="70" step="1"></label>
+      <label class="row"><span>Speed <em id="spVal"></em></span><input id="wpm" type="range" min="60" max="320" step="5"></label>
+      <label class="row"><span>Countdown <em id="cdVal"></em></span><input id="countdownSec" type="range" min="0" max="10" step="1"></label>
+      <label class="row"><span>Camera preview <em id="cbVal"></em></span><input id="camBright" type="range" min="0" max="100" step="5"></label>
+      <div class="row seg-row"><span>Theme</span>
+        <div class="seg" data-key="theme"><button data-v="night">Night</button><button data-v="amber">Amber</button><button data-v="day">Day</button></div></div>
+      <div class="row seg-row"><span>Font</span>
+        <div class="seg" data-key="font"><button data-v="sans">Sans</button><button data-v="serif">Serif</button><button data-v="rounded">Rounded</button></div></div>
+      <div class="row seg-row"><span>Align</span>
+        <div class="seg" data-key="align"><button data-v="left">Left</button><button data-v="center">Center</button></div></div>
+      <label class="row toggle"><span>Mirror text (for glass rigs)</span><input id="mirror" type="checkbox"></label>
+      <label class="row toggle"><span>Flip upside down</span><input id="flipV" type="checkbox"></label>
+      <label class="row toggle"><span>Fade text above the line</span><input id="fade" type="checkbox"></label>
+      <label class="row toggle"><span>Show reading band</span><input id="showBand" type="checkbox"></label>
+      <label class="row toggle"><span>Record starts the scroll</span><input id="recRolls" type="checkbox"></label>
+      <div class="row seg-row"><span>Bluetooth remote</span>
+        <div class="seg"><button id="learnKey">Set remote play key</button><button id="clearKey">Reset</button></div></div>
+      <details class="help">
+        <summary>Keyboard and remote keys</summary>
+        <p><b>Space, Enter, Page Down</b> play or pause. <b>Page Up</b> back a few lines. <b>Up / Down</b> nudge one line. <b>Left / Right</b> slower or faster. <b>Home</b> back to start. <b>Esc</b> exit. <b>M</b> mirror. <b>[ ]</b> text size.</p>
+        <p>Tap the text to play or pause. Drag to scroll by hand.</p>
+      </details>
+    </div>
+  </div>
+
+  <!-- RECORDING RESULT -->
+  <div id="saveModal" class="modal hidden" role="dialog" aria-label="Recording">
+    <div class="modal-card">
+      <video id="takeVideo" playsinline controls></video>
+      <div class="modal-actions">
+        <button id="closeTake" class="btn ghost">Back</button>
+        <button id="discardTake" class="btn ghost">Discard</button>
+        <a id="downloadTake" class="btn ghost" download>Download</a>
+        <button id="shareTake" class="btn primary">Save video</button>
+      </div>
+      <p class="modal-note">Save video opens the share sheet. Pick Save Video to put it in Photos.</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>
